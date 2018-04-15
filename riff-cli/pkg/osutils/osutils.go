@@ -65,9 +65,9 @@ func AbsPath(path string) (string, error) {
 		path = "."
 	}
 	if !FileExists(path) {
-		return "", errors.New(fmt.Sprintf("path '%s' does not exist",path));
+		return "", errors.New(fmt.Sprintf("path '%s' does not exist", path))
 	}
-	abs,err := filepath.Abs(path)
+	abs, err := filepath.Abs(path)
 	if err != nil {
 		return "", err
 	}
@@ -114,13 +114,15 @@ func ExecStdin(cmdName string, cmdArgs []string, stdin *[]byte, timeout time.Dur
 	// Create the command with our context
 	cmd := exec.CommandContext(ctx, cmdName, cmdArgs...)
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
 	if stdin != nil {
 		cmd.Stdin = bytes.NewBuffer(*stdin)
 	}
 	// This time we can simply use Output() to get the result.
 	out, err := cmd.Output()
+
+	if exitError, ok := err.(*exec.ExitError); ok {
+		return exitError.Stderr, err
+	}
 
 	// We want to check the context error to see if the timeout was executed.
 	// The error returned by cmd.Output() will be OS specific based on what
